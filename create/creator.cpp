@@ -8,6 +8,7 @@
 #include <set>
 #include <cstring>
 #include <sstream>
+#include <unordered_set>
 
 using namespace std;
 
@@ -42,6 +43,14 @@ bool exists(string s) {
         return false;
     }
     return true;
+}
+
+// convert ifstream to string
+string streamAllContent(ifstream& stream) {
+    stringstream ss;
+    ss << stream.rdbuf();
+    string data(ss.str());
+    return data;
 }
 
 // fetch header data in files that need to be parsed
@@ -98,21 +107,89 @@ string getAttribute(map<string, string>& m, string key) {
     return m[key];
 }
 
+// update the .html of the tag
+void updateTagPage(string tag) {
+    if (!exists(root+"index/begin.html")) reportError("index/begin.html not found");
+    ifstream indexBeginStream(root+"index/begin.html");
+    string html = streamAllContent(indexBeginStream);
+    if (exists(root+"./metadata.html")) {
+        announce("external metadata found in ./metadata.html");
+        ifstream metadata(root+"./metadata.html");
+        html += streamAllContent(metadata);
+        announce("metadata processed successfully");
+        metadata.close();
+        announce("log0");
+    }
+    else announce("no external metadata found (optional feature)");
+    html += "</head>\n<body>\n";
+    announce("log1");
+    if (!exists(root+"./header.html")) reportError("no header found");
+    ifstream header(root+"./header.html");
+    announce("log2");
+    html += streamAllContent(header);
+    html += "<div id=\"container\">";
+    announce("log3");
+    // update latest postss
+    html += "<h1>Posts with tag <i style=\"color:gray;\">"+tag+"</i>:</h1>\n";
+    string tagPath = root+"../byTag/"+tag+"/posts.txt";
+    if (!exists(tagPath)) reportError("did not find tagPath");
+    ifstream stream(tagPath);
+    string data = streamAllContent(stream);
+    string prev = "";
+    announce("log4");
+    for (char i : data) {
+        if (i == ',') {
+            if (!prev.empty()) {
+                html += "<a class=\"blogPost\" href=\"../../"+prev+"/\">"+prev+"</a>";
+                prev = "";
+            }
+        }
+        else prev += i;
+    }
+    html += "</div>";
+    // add footer
+    if (!exists(root+"./header.html")) reportError("no footer found");
+    ifstream footer(root+"./footer.html");
+    html += streamAllContent(footer);
+    html += "</body>\n</html>";
+    ofstream indexHtml(root+"../byTag/"+tag+"/index.html");
+    indexHtml << html;
+}
+
+// add a blog post to its tag posts.txt file
+void tagsAdd(string tag, string post) {
+    string tagPath = root+"../byTag/"+tag+"/posts.txt";
+    if (!exists(tagPath)) reportError("tagPath not found");
+    ifstream stream(tagPath);
+    string st = streamAllContent(stream);
+    unordered_set<string> data;
+    data.insert(post);
+    string prev = "";
+    for (char i : st) {
+        if (i == ',') {
+            if (!prev.empty()) data.insert(prev);
+            prev = "";
+        }
+        else prev += i;
+    }
+    stream.close();
+    ofstream wr(tagPath);
+    for (string i : data) wr << i << ",";
+    if (data.empty()) wr << ",";
+    wr.close();
+    updateTagPage(tag);
+}
+
 // generate the beginning of the article (title, author, date, etc.) in html format
 string generateHtmlInfo(map<string, string>& headerData) {
     string content = "<h1>"+getAttribute(headerData, "title")+"</h1>\n<p class=\"info\">By "+getAttribute(headerData, "author")+" on "+getAttribute(headerData, "day")+"/"+getAttribute(headerData, "month")+"/"+getAttribute(headerData, "year")+" at "+getAttribute(headerData, "hour")+":"+getAttribute(headerData, "minute")+"\n<p class=\"tagInfo\">Tag(s):</p>\n<div class=\"tagContainer\">";
     vector<string> tags = separate(getAttribute(headerData, "tags"), ',');
-    for (string i : tags) content += "<a href=\"./byTag/"+i+"/"+"\" class=\"tagElement\">"+i+"</a>";
+    for (string i : tags) {
+        content += "<a href=\"../byTag/"+i+"/"+"\" class=\"tagElement\">"+i+"</a>";
+        tagsAdd(i, getAttribute(headerData, "title"));
+    }
     content += "</div>";
     return content;
-}
-
-// convert ifstream to string
-string streamAllContent(ifstream& stream) {
-    stringstream ss;
-    ss << stream.rdbuf();
-    string data(ss.str());
-    return data;
 }
 
 // generate Html code for html article
@@ -125,11 +202,12 @@ string generateHtml(ifstream& toParse, map<string, string>& headerData) {
     html += "<meta name=\"keywords\""+getAttribute(headerData, "keywords")+"\">\n";
     if (exists(root+"./metadata.html")) {
         announce("external metadata found in ./metadata.html");
-        ifstream metadata("root+./metadata.html");
+        ifstream metadata(root+"./metadata.html");
         html += streamAllContent(metadata);
         announce("metadata processed successfully");
     }
     else announce("no external metadata found (optional feature)");
+    announce("current_status= "+html);
     // starting to build body
     html += "</head>\n<body>\n";
     if (!exists(root+"./header.html")) reportError("no header found");
@@ -147,7 +225,7 @@ string generateHtml(ifstream& toParse, map<string, string>& headerData) {
     return html;
 }
 
-// parse ./config/posts.txt
+// parse ./config/posts.txt, TODO: be careful, we can't have two posts written at the exact same time!
 map<int, string> parsePosts() {
     map<int, string> m;
     if (!exists(root+"config/posts.txt")) reportError("./config/posts could not be found");
@@ -156,6 +234,7 @@ map<int, string> parsePosts() {
     getline(data, pd);
     while (!data.eof()) {
         getline(data, pd);
+        if (pd.empty()) break;
         string integ = "";
         string pos = "";
         bool part = false;
@@ -166,6 +245,7 @@ map<int, string> parsePosts() {
             else if (part) pos += i;
             else integ += i;
         }
+        announce("checking for stoi of "+integ);
         m[stoi(integ)] = pos;
     }
     return m;
@@ -194,16 +274,19 @@ void updateHtmlIndex() {
     map<int, string> posts = parsePosts();
     while (posts.size() > 10) posts.erase(prev(posts.end()));
     ofstream postsOut(root+"./config/posts.txt");
-    postsOut << "POST(S):" << endl;
+    postsOut << "Posts:" << endl;
     for (pair<int, string> i : posts) {
         postsOut << to_string(i.first) << ":" << i.second << endl;
-        html += "<a href=\"./"+i.second+".html\" class=\"blogPost\">"+i.second+"</a>";
+        announce("---> "+i.second);
+        string ls = "";
+        for (char j : i.second) if (j != '.' and j != '/') ls += j;
+        html += "<a class=\"blogPost\" href="+i.second+"/\">"+ls+"</a>";
     }
     // update tags
     if (!exists(root+"config/tags.txt")) reportError("./config/tags.txt not existing");
     ifstream presentTagsStream(root+"config/tags.txt");
     vector<string> alreadyPresentTags = separate(streamAllContent(presentTagsStream), ',');
-    html += "<h1>Posts by tags<h1>\n";
+    html += "<h1>Posts by tags</h1>\n";
     for (string i : alreadyPresentTags) html += "<a href=\"./byTag/"+i+"/"+"\" class=\"tagElement\">"+i+"</a>";
     html += "</div>";
     // add footer
@@ -242,7 +325,7 @@ void parse(string toParsePath) {
     string html = generateHtml(toParse, headerData);
     announce("parsing completed");
     announce("starting to write contents to file");
-    string setFilePath = root+"../"+getAttribute(headerData, "title")+".html";
+    string setFilePath = root+"../"+getAttribute(headerData, "title")+"/index.html";
     ofstream setFile(setFilePath);
     setFile << html;
     announce("contents written successfully");
@@ -274,15 +357,25 @@ void parse(string toParsePath) {
 
 int main() {
     announce("Please enter the parent directory (with a '/' at the end) of your creator.cpp file (in normal use cases you should just enter \"./\")");
-    cin >> root;
+    ifstream fin("./tasks.in");
+    // #define fin cin
+    fin >> root;
     while (true) {
         announce("Please enter the location of the file you'd like to parse: (e.g. ./toParse.txt) (other special commands feature '0': stop execution)");
         string toParsePath;
-        cin >> toParsePath;
+        fin >> toParsePath;
         if (toParsePath == "0") {
-            announce("terminated by user");
-            exit(0);
+            announce("requested for termination");
+            announce("programm will terminate shortly after running some final tasks");
+            break;
         }
-        parse(root+toParsePath);
+        parse(root+"../"+toParsePath+"/"+toParsePath+".txt");
     }
+    announce("running final ending tasks");
+    updateHtmlIndex();
+    if (!exists(root+"config/tags.txt")) reportError("./config/tags.txt not existing");
+    ifstream presentTagsStream(root+"config/tags.txt");
+    vector<string> alreadyPresentTags = separate(streamAllContent(presentTagsStream), ',');
+    for (string i : alreadyPresentTags) updateTagPage(i);
+    announce("prog finished");
 }

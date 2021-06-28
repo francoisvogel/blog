@@ -1,0 +1,145 @@
+:root {
+    --highlight-color: rgb(190, 163, 163);
+    --header-color: rgb(218, 161, 161);
+    --footer-color: rgb(192, 192, 37);
+    --impact-color: rgb(223, 210, 210);
+    --surface-color: white;
+}
+
+html, body, header, footer, div, nav, p, h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: black;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(var(--header-color), var(--footer-color));
+}
+
+header {
+    display: flex;
+    height: max-content;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--header-color);
+    filter: brightness(98%);
+}
+
+.logo {
+    margin: 5px;
+    margin-right: 10px;
+    height: 40px;
+    width: auto;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.logo:hover {
+    filter: brightness(50%);
+}
+
+.title {
+    font-size: 40px;
+    margin-left: 10px;
+    transition: 0.3s;
+}
+
+.title:hover {
+    color: var(--surface-color);
+}
+
+#container {
+    width: 95%;
+}
+
+h1 {
+    font-size: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.info {
+    font-size: 17px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.tagInfo {
+    font-size: 25px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.tagContainer {
+    margin-bottom: 20px;
+}
+
+.tagElement {
+    height: max-content;
+    width: max-content;
+    margin: 3px;
+    padding: 5px;
+    font-size: 20px;
+    text-align: center;
+    border-radius: 5px;
+    background-color: var(--impact-color);
+    transition: 0.3s;
+}
+
+.tagElement:hover {
+    background-color: var(--highlight-color);
+}
+
+.blogPost {
+    margin: 3px;
+    padding: 5px;
+    font-size: 20px;
+    text-align: center;
+    border-radius: 5px;
+    background-color: var(--impact-color);
+    transition: 0.3s;
+}
+
+.blogPost:hover {
+    background-color: var(--highlight-color);
+}
+
+footer {
+    display: flex;
+    height: max-content;
+    width: 100%;
+    margin-top: auto;
+    flex-direction: row;
+    justify-content: space-evenly;
+    background-color: var(--footer-color);
+    filter: brightness(98%);
+}
+
+.footerTab {
+    height: 100%;
+    width: max-content;
+    padding: 5px;
+    font-size: 15px;
+    flex-direction: column;
+    text-align: center;
+}
+
+.highlight {
+    transition: 0.3s;
+}
+
+.highlight:hover {
+    background-color: var(--highlight-color);
+}
