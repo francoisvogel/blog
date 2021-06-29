@@ -101,7 +101,7 @@ vector<string> separate(string data, char delim) {
 }
 
 // get attribute from a key in map
-string getAttribute(map<string, string>& m, string key) {
+string getAttribute(map<string, string> m, string key) {
     announce("request for attribute of key="+key);
     if (m.find(key) == m.end()) reportError("key not found");
     return m[key];
@@ -137,15 +137,24 @@ void updateTagPage(string tag) {
     string data = streamAllContent(stream);
     string prev = "";
     announce("log4");
+    html += "<div class=\"blogContainer\">";
     for (char i : data) {
         if (i == ',') {
             if (!prev.empty()) {
-                html += "<a class=\"blogPost\" href=\"../../"+prev+"/\">"+prev+"</a>";
+                string ls = "";
+                int cdn = 4;
+                for (char j : prev) {
+                    if (cdn <= 0 and j == '<') break;
+                    else if(cdn <= 0) ls += j;
+                    cdn--;
+                }
+                html += "<a class=\"blogPost\" href=\"../../"+ls+"/\">"+prev+"</a>";
                 prev = "";
             }
         }
         else prev += i;
     }
+    html += "</div>";
     html += "</div>";
     // add footer
     if (!exists(root+"./header.html")) reportError("no footer found");
@@ -156,13 +165,22 @@ void updateTagPage(string tag) {
     indexHtml << html;
 }
 
+// get the html content for the post
+string getPostShortContent(map<string, string>& hd) {
+    string html = "<h2>"+getAttribute(hd, "title")+"</h2>";
+    html += "<h5>By "+getAttribute(hd, "author")+" on "+getAttribute(hd, "day")+"/"+getAttribute(hd, "month")+"/"+getAttribute(hd, "year")+"</h5>";
+    html += "<h4>"+getAttribute(hd, "description")+"</h4>";
+    return html;
+}
+
 // add a blog post to its tag posts.txt file
-void tagsAdd(string tag, string post) {
+void tagsAdd(string tag, map<string, string>& headerData) {
     string tagPath = root+"../byTag/"+tag+"/posts.txt";
     if (!exists(tagPath)) reportError("tagPath not found");
     ifstream stream(tagPath);
     string st = streamAllContent(stream);
     unordered_set<string> data;
+    string post = getPostShortContent(headerData);
     data.insert(post);
     string prev = "";
     for (char i : st) {
@@ -186,7 +204,7 @@ string generateHtmlInfo(map<string, string>& headerData) {
     vector<string> tags = separate(getAttribute(headerData, "tags"), ',');
     for (string i : tags) {
         content += "<a href=\"../byTag/"+i+"/"+"\" class=\"tagElement\">"+i+"</a>";
-        tagsAdd(i, getAttribute(headerData, "title"));
+        tagsAdd(i, headerData);
     }
     content += "</div>";
     return content;
@@ -275,13 +293,21 @@ void updateHtmlIndex() {
     while (posts.size() > 10) posts.erase(prev(posts.end()));
     ofstream postsOut(root+"./config/posts.txt");
     postsOut << "Posts:" << endl;
+    html += "<div class=\"blogContainer\">";
     for (pair<int, string> i : posts) {
         postsOut << to_string(i.first) << ":" << i.second << endl;
         announce("---> "+i.second);
         string ls = "";
-        for (char j : i.second) if (j != '.' and j != '/') ls += j;
-        html += "<a class=\"blogPost\" href="+i.second+"/\">"+ls+"</a>";
+        int cnt = 0;
+        int cdn = 4;
+        for (char i : i.second) {
+            if (cdn <= 0 and i == '<') break;
+            else if(cdn <= 0) ls += i;
+            cdn--;
+        }
+        html += "<a class=\"blogPost\" href=\""+ls+"/\">"+i.second+"</a>";
     }
+    html += "</div>";
     // update tags
     if (!exists(root+"config/tags.txt")) reportError("./config/tags.txt not existing");
     ifstream presentTagsStream(root+"config/tags.txt");
@@ -350,7 +376,7 @@ void parse(string toParsePath) {
     }
     rewriteTags.close(); // changes take effect immediately
     if (tags.empty()) rewriteTags << ','; // to avoid corner case for checking if empty/nonexisting file
-    addPost("./"+getAttribute(headerData, "title"), encodeTime(headerData));
+    addPost(getPostShortContent(headerData), encodeTime(headerData));
     updateHtmlIndex();
     announce("success for \""+toParsePath+"\"");
 }

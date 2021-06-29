@@ -37,6 +37,10 @@ header {
     filter: brightness(98%);
 }
 
+.logoContainer {
+
+}
+
 .logo {
     margin: 5px;
     margin-right: 10px;
@@ -46,8 +50,12 @@ header {
     transition: 0.3s;
 }
 
-.logo:hover {
-    filter: brightness(50%);
+.logoHover:hover {
+    filter: invert(100%);
+}
+
+.logoBright:hover {
+    filter: brightness(150%);
 }
 
 .title {
@@ -61,13 +69,33 @@ header {
 }
 
 #container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
     width: 95%;
 }
 
 h1 {
+    width: 100%;
     font-size: 50px;
     margin-top: 20px;
     margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 42px;
+}
+
+h3 {
+    font-size: 30px;
+}
+
+h4 {
+    font-size: 23px;
+}
+
+h5 {
+    font-size: 15px;
 }
 
 .info {
@@ -102,18 +130,36 @@ h1 {
     background-color: var(--highlight-color);
 }
 
+.blogContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
 .blogPost {
-    margin: 3px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: max-content;
+    min-height: 300px;
+    width: 300px;
+    margin: 20px;
     padding: 5px;
     font-size: 20px;
     text-align: center;
     border-radius: 5px;
     background-color: var(--impact-color);
+    background-image: linear-gradient(var(--header-color), var(--footer-color));
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-size: 30px;
+    box-shadow: 12px 29px 81px 0px rgb(0 0 0 / 75%);
     transition: 0.3s;
 }
 
 .blogPost:hover {
-    background-color: var(--highlight-color);
+    color: white;
+    filter: brightness(80%);
 }
 
 footer {
