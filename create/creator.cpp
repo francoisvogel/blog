@@ -383,8 +383,9 @@ void parse(string toParsePath) {
 
 int main() {
     announce("Please enter the parent directory (with a '/' at the end) of your creator.cpp file (in normal use cases you should just enter \"./\")");
-    ifstream fin("./tasks.in");
-    // #define fin cin
+    // ifstream fin("./tasks.in");
+    #define fin cin
+    // fin >> root;
     fin >> root;
     while (true) {
         announce("Please enter the location of the file you'd like to parse: (e.g. ./toParse.txt) (other special commands feature '0': stop execution)");
