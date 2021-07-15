@@ -12,4 +12,4 @@ description: Mein Kommentar zum video
 keywords: german
 ---
 
-txt
+Ich glaube, dass Busse und Autos in einer Stadt nicht nötig sind. Aber jetzt durch COVID-neunzehn ist es gefährlich den öffentlichen Verkehr zu benutzen. Also wäre es eine gute Lösung mit dem Fahrrad zu fahren, um die Luftverschmutzung zu reduzieren.
