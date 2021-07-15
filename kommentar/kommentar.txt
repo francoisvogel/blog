@@ -1,6 +1,6 @@
 ---
 author: Francois Vogel
-title: Kommentar
+title: kommentar
 day: 15
 month: 07
 year: 2021
