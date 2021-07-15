@@ -8,7 +8,7 @@ hour: 16
 minute: 14
 tags: deutsch
 language: de
-description: kommentar zum video
+description: Mein Kommentar zum video
 keywords: german
 ---
 

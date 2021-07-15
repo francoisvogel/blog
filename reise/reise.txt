@@ -8,7 +8,7 @@ hour: 15
 minute: 51
 tags: deutsch
 language: en
-description: testing the creation of a page
+description: Meine Reise
 keywords: testing, github, cool projects, open source
 ---
 
