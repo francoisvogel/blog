@@ -1,0 +1,15 @@
+---
+author: Francois Vogel
+title: Kommentar
+day: 15
+month: 07
+year: 2021
+hour: 16
+minute: 14
+tags: deutsch
+language: de
+description: kommentar zum video
+keywords: german
+---
+
+txt
